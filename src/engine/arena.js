@@ -89,24 +89,43 @@ export function createArena(container,{onInvite}={}){
   function hoop(s){
     const grp=new THREE.Group(),white=new THREE.MeshStandardMaterial({color:0xe9e9e6,roughness:.4,metalness:.3}),
       pad=new THREE.MeshStandardMaterial({color:0x1d3ba6,roughness:.7});
-    const bx=s*14;
-    const base=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.0,2.2),pad);base.position.set(bx+s*2.4,0.5,0);base.castShadow=true;grp.add(base);
-    const post=new THREE.Mesh(new THREE.BoxGeometry(0.35,1.6,0.6),pad);post.position.set(bx+s*2.2,1.8,0);grp.add(post);
-    const arm=new THREE.Mesh(new THREE.BoxGeometry(2.6,0.18,0.3),white);arm.position.set(bx+s*0.9,3.05,0);arm.rotation.z=s*0.42;arm.castShadow=true;grp.add(arm);
-    const arm2=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.14,0.26),white);arm2.position.set(bx+s*0.4,3.6,0);grp.add(arm2);
-    const board=new THREE.Mesh(new THREE.BoxGeometry(0.04,1.05,1.8),new THREE.MeshPhysicalMaterial({color:0xddeeff,roughness:0.05,transmission:0.0,transparent:true,opacity:0.22}));
-    board.position.set(bx-s*1.2,3.425,0);grp.add(board);
+    const bx=s*14,fx=bx-s*1.2,rx=s*(14-1.575),RIM_R=0.2286;   // baseline, backboard plane (1.2 m in), rim center
+    const box=(w,h,d,x,y,z,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;grp.add(o);return o;};
+    // a square beam from point a to point b (x,y in the hoop's plane, z=0)
+    const beam=(ax,ay,bx2,by,t,m)=>{const A=new THREE.Vector3(ax,ay,0),B=new THREE.Vector3(bx2,by,0),d=B.clone().sub(A);
+      const o=new THREE.Mesh(new THREE.BoxGeometry(d.length(),t,t),m);o.position.copy(A).add(B).multiplyScalar(0.5);
+      o.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),d.normalize());o.castShadow=true;grp.add(o);};
+    // portable stanchion: padded base + column behind the baseline, boom and brace out to the board
+    const px=bx+s*1.9;
+    box(1.6,1.0,2.2,bx+s*2.4,0.5,0,pad);
+    box(0.36,2.5,0.5,px,2.25,0,pad);
+    beam(px,3.45,fx+s*0.06,3.45,0.16,white);
+    beam(px,2.4,fx+s*0.5,3.4,0.12,white);
+    box(0.06,0.6,0.9,fx+s*0.06,3.425,0,white);                 // mount plate behind the glass
+    // glass board 1.8 x 1.05, bottom edge 2.9 m
+    const glass=new THREE.Mesh(new THREE.BoxGeometry(0.03,1.05,1.8),new THREE.MeshPhysicalMaterial({color:0xddeeff,roughness:0.05,transparent:true,opacity:0.22,depthWrite:false}));
+    glass.position.set(fx,3.425,0);grp.add(glass);
     const fr=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.3});
-    const edge=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),fr);m.position.set(x,y,z);grp.add(m);};
-    const fx=bx-s*1.2;edge(0.05,0.05,1.8,fx,3.95,0);edge(0.05,0.05,1.8,fx,2.9,0);edge(0.05,1.05,0.05,fx,3.425,0.9);edge(0.05,1.05,0.05,fx,3.425,-0.9);
-    edge(0.05,0.05,0.59,fx,3.5,0);edge(0.05,0.45,0.05,fx,3.275,0.295);edge(0.05,0.45,0.05,fx,3.275,-0.295);
-    const shot=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.45,0.7),new THREE.MeshStandardMaterial({color:0x111111,emissive:0xff3b1f,emissiveIntensity:0.6}));shot.position.set(fx+s*0.05,4.25,0);grp.add(shot);
-    const rim=new THREE.Mesh(new THREE.TorusGeometry(0.2286,0.01,8,40),new THREE.MeshStandardMaterial({color:0xe2531f,roughness:.4,metalness:.4}));
-    rim.rotation.x=Math.PI/2;rim.position.set(s*(14-1.575),3.05,0);rim.castShadow=true;grp.add(rim);
-    // net
-    const pts=[],N=12;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,b=(i+1.5)/N*Math.PI*2,c=(i-1.5)/N*Math.PI*2;
-      for(const e of[b,c])pts.push(new THREE.Vector3(Math.cos(a)*0.2286,0,Math.sin(a)*0.2286),new THREE.Vector3(Math.cos(e)*0.14,-0.42,Math.sin(e)*0.14));}
-    const net=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xffffff}));net.position.copy(rim.position);grp.add(net);
+    box(0.06,0.06,1.86,fx,3.95,0,fr);box(0.06,0.06,1.86,fx,2.9,0,fr);box(0.06,1.11,0.06,fx,3.425,0.9,fr);box(0.06,1.11,0.06,fx,3.425,-0.9,fr);
+    box(0.08,0.07,1.9,fx,2.86,0,pad);                          // bottom edge padding
+    // shooter's square 0.59 x 0.45, bottom edge level with the rim, on the court-side face
+    const ix=fx-s*0.018;
+    box(0.01,0.04,0.59,ix,3.48,0,fr);box(0.01,0.04,0.59,ix,3.07,0,fr);box(0.01,0.45,0.04,ix,3.275,0.275,fr);box(0.01,0.45,0.04,ix,3.275,-0.275,fr);
+    // shot clock sitting on the top frame
+    box(0.15,0.4,0.7,fx+s*0.05,4.18,0,new THREE.MeshStandardMaterial({color:0x111111,emissive:0xff3b1f,emissiveIntensity:0.6}));
+    // rim + bracket bolted to the board face
+    const orange=new THREE.MeshStandardMaterial({color:0xe2531f,roughness:.4,metalness:.4});
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(RIM_R,0.016,12,48),orange);
+    rim.rotation.x=Math.PI/2;rim.position.set(rx,3.05,0);rim.castShadow=true;grp.add(rim);
+    beam(fx-s*0.015,3.04,rx+s*RIM_R*0.92,3.04,0.05,orange);
+    box(0.03,0.16,0.24,fx-s*0.03,3.0,0,orange);
+    // net: diamond mesh, alternate rows offset half a strand
+    const NS=16,NR=6,L=0.42,pts=[];
+    const P=(i,j)=>{const a=(((i%NS)+NS)%NS+(j%2)*0.5)/NS*Math.PI*2,r=RIM_R+(0.14-RIM_R)*Math.pow(j/(NR-1),0.85);
+      return new THREE.Vector3(Math.cos(a)*r,-j*L/(NR-1),Math.sin(a)*r);};
+    for(let j=0;j<NR-1;j++)for(let i=0;i<NS;i++){const o=j%2?1:-1;pts.push(P(i,j),P(i,j+1),P(i,j),P(i+o,j+1));}
+    const net=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.85}));
+    net.position.copy(rim.position);grp.add(net);
     return grp;
   }
 
@@ -283,8 +302,10 @@ export function createArena(container,{onInvite}={}){
   function tick(){
     const dt=Math.min(0.05,clock.getDelta());
     let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-stick.y;
-    let r=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+stick.x;
-    if(keys.KeyQ)S.yaw+=dt*1.6;if(keys.KeyE)S.yaw-=dt*1.6;
+    let r=(keys.KeyD?1:0)-(keys.KeyA?1:0)+stick.x;
+    // ←/→ (and Q/E) turn the view; A/D still sidestep
+    const turn=(keys.ArrowLeft||keys.KeyQ?1:0)-(keys.ArrowRight||keys.KeyE?1:0);
+    if(turn){S.yaw+=turn*dt*1.8;hideHint();}
     const sp=(keys.ShiftLeft||keys.ShiftRight?7:3.6)*dt,l=Math.hypot(f,r);if(l>1){f/=l;r/=l;}
     if(f||r){hideHint();
       const fx=-Math.sin(S.yaw),fz=-Math.cos(S.yaw),rx=Math.cos(S.yaw),rz=-Math.sin(S.yaw);
