@@ -1,0 +1,40 @@
+<canvas id="court" aria-label="농구 코트. 위로 튕기거나 카메라 앞에서 슛 동작을 하면 공이 날아갑니다."></canvas>
+<canvas id="hudCv" aria-hidden="true"></canvas>
+
+<div class="rail" aria-hidden="true">
+  <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+  <div class="t1">FT-01 · Free throw line · 4.225 m to rim</div>
+  <div class="t2"><span class="rec"><i></i>Rec</span> &nbsp;<span id="tc">00:00:00:00</span></div>
+  <div class="rule"></div>
+  <div class="b1" id="attTxt">Attempt 00 · Waiting for shooter</div>
+</div>
+<div id="tag" aria-hidden="true"></div>
+<div id="big" aria-live="polite"><span class="w" id="bigW"></span><span class="u"></span><span class="m" id="bigM"></span></div>
+<div id="sub" aria-live="polite"><span class="ko" id="subKo"></span><span class="en" id="subEn"></span></div>
+<div id="flash"></div>
+<div class="controls">
+  <div class="panel" style="display:flex;flex-direction:column;gap:8px"><button id="camBtn" type="button" hidden>카메라 다시 켜기</button>
+    <div class="sens" style="margin:0"><label for="bhlModel">정확도</label><select id="bhlModel" style="flex:1;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px"><option value="lite">빠름</option><option value="full" selected>정밀 (권장)</option><option value="heavy">최고 정밀</option></select></div></div>
+  <div class="panel" id="status">카메라를 켜는 중이에요. 권한을 물어보면 <strong>허용</strong>을 눌러주세요.</div>
+  <div class="panel meter">
+    <div class="label"><span>파워</span><span id="powTxt">–</span></div>
+    <div class="bar"><div class="sweet"></div><div class="fill" id="powFill"></div></div>
+    <div class="sens" id="sensRow" hidden><label for="sens">감도</label><input id="sens" type="range" min="1" max="10" step="0.05" value="7.8"><span id="sensVal">7.8</span><button id="recal" class="ghost" type="button" style="padding:3px 8px;font-size:11px">다시 보정</button></div>
+    <div id="fingerRow" hidden>
+      <div class="sens"><input id="needFingers" type="checkbox" checked style="flex:none"><label for="needFingers">손가락 모아야 슛</label><input id="palmFlip" type="checkbox" style="flex:none;margin-left:10px"><label for="palmFlip">손바닥 방향 반전</label></div>
+      <div class="sens"><label for="palmMin">손바닥 정면 기준</label><input id="palmMin" type="range" min="0.3" max="0.85" step="0.01" value="0.34"><span id="palmMinVal">0.34</span></div>
+      <div class="sens"><label for="gatherMin">표준 손가락 속도</label><input id="gatherMin" type="range" min="0.3" max="4" step="0.05" value="1.2"><span id="gatherMinVal">1.20</span></div>
+      <div class="sens"><label for="riseMin">표준 팔 속도</label><input id="riseMin" type="range" min="0" max="2.5" step="0.05" value="0.5"><span id="riseMinVal">0.50</span></div>
+      <div class="sens"><label for="diff">난이도</label><input id="diff" type="range" min="0.5" max="2.5" step="0.05" value="0.5"><span id="diffVal">0.50</span></div>
+      <div class="sens"><input id="collect" type="checkbox" style="flex:none"><label for="collect">표준 수집 모드</label><span id="collectN" style="margin-left:auto">0개</span></div>
+      <div class="sens"><button id="applyStd" class="ghost" type="button" style="padding:3px 8px;font-size:11px">중간값을 표준으로</button><button id="clearSamples" class="ghost" type="button" style="padding:3px 8px;font-size:11px">수집 비우기</button><button id="resetStd" class="ghost" type="button" style="padding:3px 8px;font-size:11px">기본값</button></div>
+      <textarea id="stdOut" readonly rows="2" style="width:100%;margin-top:6px;font:10px/1.4 var(--f-mono);background:transparent;color:var(--ink);border:1px solid var(--line);resize:none"></textarea>
+      <div class="sens" style="display:none"><span id="fingerTxt" style="margin-left:auto">–</span></div>
+      <div class="sens"><label for="fthr">허용</label><input id="fthr" type="range" min="0.2" max="0.6" step="0.01" value="0.51"><span id="fthrVal">0.51</span></div>
+    </div>
+    <div class="sens" id="bhlDbg" hidden><span id="dbgTxt" style="flex:1;min-width:0">대기 중</span><span id="bhlFps">–</span></div>
+  </div>
+</div>
+
+<div id="camWrap" hidden><canvas id="camCv" width="480" height="270"></canvas><div class="tag"><span class="dot" id="camDot"></span>Cam 01 · <span id="camTag">LOADING</span></div><div class="fps" id="camFps"></div></div>
+<video id="video" playsinline muted autoplay style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
