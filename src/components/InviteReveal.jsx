@@ -37,6 +37,8 @@ export default function InviteReveal() {
           <TypeSlabField
             text="2026 BHL"
             font={{ fontFamily: '"Archivo", "Helvetica Neue", Arial, sans-serif', fontWeight: 900 }}
+            // flat: thin slabs (depth > 0, the shader divides by it) and a reach wide enough that every slab sits at the same z
+            grid={{ depth: 2, reach: 100000 }}
             style={{ position: 'absolute', inset: 0, minWidth: 0, minHeight: 0 }}
           />
         )}</div>
